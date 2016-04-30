@@ -1,5 +1,11 @@
 #!/usr/bin/perl -w
-# This script has been written by Alexander Trost <galexrt@googlemail.com>
+# server_restarter.pl -- SRCDS server checker and restarter
+# 
+# Copyright (C) 2016 Alexander Trost
+# All rights reserved.
+#
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
 
 use strict;
 use warnings;
@@ -69,3 +75,4 @@ sub runCMD {
   my @output = `$command`;
   return @output, $? >> 8;
 }
+
