@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # server_restarter.pl -- SRCDS server checker and restarter
-# 
+#
 # Copyright (C) 2016 Alexander Trost
 # All rights reserved.
 #
@@ -15,17 +15,20 @@ use Net::SRCDS::Queries;
 use Socket;
 use Term::Encoding qw(term_encoding);
 
-# SRCDS is listening on local server, local address
+# SRCDS Server inforatmion
 my $serverPath = "PATH_TO_YOUR_SERVER_FOLDER"; # The path to your server folder
-$serverPath =~ s/\/$//g;
+my $serverStatusFilename = ".server_status";
+my $addr= "127.0.0.1"; # Reachable server address
+my $port = 27015; # SRCDS port
 my $restartCommand = "";
 my $restartWorkDirectory = "";
+# </Configuration END>
+
+my $encoding = term_encoding;
+$serverPath =~ s/\/$//g;
 if ($restartWorkDirectory eq "") {
     $restartWorkDirectory = $serverPath;
 }
-my $addr= "127.0.0.1";
-my $port = 27015;
-my $encoding = term_encoding;
 
 my $q = Net::SRCDS::Queries->new(
     encoding => $encoding, # set encoding to convert from utf8
@@ -36,10 +39,10 @@ my $result = $q->get_all;
 
 if (not defined $result) {
     print("Server unreachable.\n");
-    my @output = runCMD("echo 'unreachable' >> \'" . $serverPath . "/.server_status'; grep \'unreachable\' \'" . $serverPath . "/.server_status\' | wc -l");
+    my @output = runCMD("echo 'unreachable' >> \'" . $serverPath . "/" . $serverStatusFilename . "'; grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
     my $unreachCount = $output[0];
     if ($output[1]) {
-        print("=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/.server_status\' file.");
+        print("=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/" . $serverStatusFilename ."\' file.");
         exit(2);
     }
     $unreachCount =~ s/^\s+|\s+$//g;
@@ -59,9 +62,9 @@ if (not defined $result) {
 }
 elsif (ref $result eq "HASH") {
     print("Server reachable.\n");
-    my @output = runCMD("echo '' > " . $serverPath . "/.server_status");
+    my @output = runCMD("echo '' > " . $serverPath . "/" . $serverStatusFilename);
     if (pop(@output) > 0) {
-        print("=> Error while resetting the \'" . $serverPath . "/server_status\' file.\n");
+        print("=> Error while resetting the \'" . $serverPath . "/" . $serverStatusFilename . "\' file.\n");
         exit(1);
     }
     exit(0);
@@ -75,4 +78,3 @@ sub runCMD {
   my @output = `$command`;
   return @output, $? >> 8;
 }
-
