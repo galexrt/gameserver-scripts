@@ -11,6 +11,6 @@ You also need to install the `Net::SRCDS::Queries` Perl module.
 The command to install the Perl module is:
 ```
 cpan Net::SRCDS::Queries
-# OR (Depending on hwat you have installed)
+# OR (Depending on what you have installed)
 cpanm Net::SRCDS::Queries
 ```

@@ -22,6 +22,8 @@ my $addr= "127.0.0.1"; # Reachable server address
 my $port = 27015; # SRCDS port
 my $restartCommand = "";
 my $restartWorkDirectory = "";
+my $resetAfterLines = 216000;
+my $queryTimeout = 12;
 # </Configuration END>
 
 my $encoding = term_encoding;
@@ -32,49 +34,85 @@ if ($restartWorkDirectory eq "") {
 
 my $q = Net::SRCDS::Queries->new(
     encoding => $encoding, # set encoding to convert from utf8
-    timeout  => 10, # change timeout. default is 3 seconds
+    timeout  => int($queryTimeout),
 );
 $q->add_server($addr, $port);
 my $result = $q->get_all;
 
 if (not defined $result) {
-    print("Server unreachable.\n");
-    my @output = runCMD("echo 'unreachable' >> \'" . $serverPath . "/" . $serverStatusFilename . "'; grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
-    my $unreachCount = $output[0];
-    if ($output[1]) {
-        print("=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/" . $serverStatusFilename ."\' file.");
-        exit(2);
-    }
-    $unreachCount =~ s/^\s+|\s+$//g;
-    if ($unreachCount == 5) {
-        print("* Server was now unreachable, since 5 tries.\n");
-        print("=> Forcing server restart.\n");
-        my @restartOutput = runCMD("cd " . $restartWorkDirectory . "; " . $restartCommand);
-        if (pop(@restartOutput) > 0) {
-            print("=> There was an error restarting the server.\n");
-            exit(1);
-        }
-        else {
-            print("=> Server restart successfull! Hibernating till next check.\n");
-            exit(0);
-        }
-    }
+    isNotReachable();
 }
 elsif (ref $result eq "HASH") {
-    print("Server reachable.\n");
-    my @output = runCMD("echo '' > " . $serverPath . "/" . $serverStatusFilename);
-    if (pop(@output) > 0) {
-        print("=> Error while resetting the \'" . $serverPath . "/" . $serverStatusFilename . "\' file.\n");
-        exit(1);
-    }
-    exit(0);
+    isReachable();
 } else {
-    print("=> Unknonw response from SRCDS::Queries object received.\n");
+    print STDERR "=> Unknonw response from SRCDS::Queries object received.\n");
     exit(1);
 }
+
+resetFile();
+exit(0);
 
 sub runCMD {
   my ($command) = @_;
   my @output = `$command`;
   return @output, $? >> 8;
+}
+sub isNotReachable {
+    my @output = runCMD("echo \"`date` unreachable\" >> \'" . $serverPath . "/" . $serverStatusFilename . "';tail -n 5 \'" . $serverPath . "/" . $serverStatusFilename . " | grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
+    my $unreachCount = $output[0];
+    if (pop(@output) > 0) {
+        print STDERR "=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/" . $serverStatusFilename ."\' file.";
+        exit(1);
+    }
+    $unreachCount =~ s/^\s+|\s+$//g;
+    if ($unreachCount == 5) {
+        print STDERR "=> Server was five times unreachable, forcing server restart.\n";
+        my @restartOutput = runCMD("cd " . $restartWorkDirectory . "; " . $restartCommand);
+        if (pop(@restartOutput) > 0) {
+            print STDERR "=> There was an error restarting the server.\n";
+            exit(1);
+        }
+        else {
+            print STDERR "=> Server restart successfull! Hibernating till next check.\n");
+        }
+    }
+}
+sub isReachable {
+    print("=> Server reachable.\n");
+    my @output = runCMD("echo \"`date` reachable\" >> " . $serverPath . "/" . $serverStatusFilename);
+    if (pop(@output) > 0) {
+        print STDERR "=> Error while resetting the \'" . $serverPath . "/" . $serverStatusFilename . "\' file.\n";
+        exit(1);
+    }
+}
+
+sub resetFile {
+    my @output = runCMD("wc -l \'" . $serverPath . "/" . $serverStatusFilename . "\"");
+    if (pop(@output) > 0) {
+        my $lineCount = (split(/\s+/, $output[0]))[0];
+        if (not defined $lineCount) {
+            print STDERR "=> Error getting the wc line count of the server status file.\n";
+            exit(1);
+        }
+        if ($lineCount >= $resetAfterLines) {
+            @output = runCMD("tail -n 15 \'" . $serverPath . "/" . $serverStatusFilename);
+            if (pop(@output) > 0) {
+                print STDERR "=> Error tailing the last 15 lines.\n";
+                exit(1);
+            }
+            my $first = 1;
+            foreach my $line (@output) {
+                my $redir = ">";
+                if ($first) {
+                    $first = 0;
+                    $redir .= ">";
+                }
+                my @out = runCMD("echo " . $line . " " . $redir . " \'" . $serverPath . "/" . $serverStatusFilename);
+                if (pop(@out) > 0) {
+                    print STDERR "=> Error resetting file.\n";
+                    exit(1);
+                }
+            }
+        }
+    }
 }
