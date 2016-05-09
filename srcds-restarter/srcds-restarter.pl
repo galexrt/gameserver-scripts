@@ -24,6 +24,7 @@ my $restartCommand = "";
 my $restartWorkDirectory = "";
 my $resetAfterLines = 216000;
 my $queryTimeout = 12;
+my $maxUnreachCount = 3;
 # </Configuration END>
 
 my $encoding = term_encoding;
@@ -65,7 +66,7 @@ sub isNotReachable {
         exit(1);
     }
     $unreachCount =~ s/^\s+|\s+$//g;
-    if ($unreachCount == 5) {
+    if ($unreachCount == $maxUnreachCount) {
         print STDERR "=> Server was five times unreachable, forcing server restart.\n";
         my @restartOutput = runCMD("cd \"" . $restartWorkDirectory . "\"; " . $restartCommand);
         if (pop(@restartOutput) > 0) {
