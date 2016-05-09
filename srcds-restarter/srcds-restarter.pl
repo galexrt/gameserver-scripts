@@ -58,7 +58,7 @@ sub runCMD {
   return @output, $? >> 8;
 }
 sub isNotReachable {
-    my @output = runCMD("echo \"`date` unreachable\" >> \'" . $serverPath . "/" . $serverStatusFilename . "';tail -n 5 \'" . $serverPath . "/" . $serverStatusFilename . " | grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
+    my @output = runCMD("echo `date` unreachable >> \'" . $serverPath . "/" . $serverStatusFilename . "\"';tail -n 5 \'" . $serverPath . "/" . $serverStatusFilename . "\" | grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
     my $unreachCount = $output[0];
     if (pop(@output) > 0) {
         print STDERR "=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/" . $serverStatusFilename ."\' file.";
@@ -67,7 +67,7 @@ sub isNotReachable {
     $unreachCount =~ s/^\s+|\s+$//g;
     if ($unreachCount == 5) {
         print STDERR "=> Server was five times unreachable, forcing server restart.\n";
-        my @restartOutput = runCMD("cd " . $restartWorkDirectory . "; " . $restartCommand);
+        my @restartOutput = runCMD("cd \"" . $restartWorkDirectory . "\"; " . $restartCommand);
         if (pop(@restartOutput) > 0) {
             print STDERR "=> There was an error restarting the server.\n";
             exit(1);
@@ -79,7 +79,7 @@ sub isNotReachable {
 }
 sub isReachable {
     print("=> Server reachable.\n");
-    my @output = runCMD("echo \"`date` reachable\" >> " . $serverPath . "/" . $serverStatusFilename);
+    my @output = runCMD("echo `date` reachable >> \"" . $serverPath . "/" . $serverStatusFilename . "\"");
     if (pop(@output) > 0) {
         print STDERR "=> Error while resetting the \'" . $serverPath . "/" . $serverStatusFilename . "\' file.\n";
         exit(1);
