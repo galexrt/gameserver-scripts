@@ -46,7 +46,7 @@ if (not defined $result) {
 elsif (ref $result eq "HASH") {
     isReachable();
 } else {
-    print STDERR "=> Unknonw response from SRCDS::Queries object received.\n");
+    print STDERR "=> Unknown response from SRCDS::Queries object received.\n";
     exit(1);
 }
 
@@ -74,7 +74,7 @@ sub isNotReachable {
             exit(1);
         }
         else {
-            print STDERR "=> Server restart successfull! Hibernating till next check.\n");
+            print STDERR "=> Server restart successfull! Hibernating till next check.\n";
         }
     }
 }
