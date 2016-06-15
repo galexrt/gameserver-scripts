@@ -59,7 +59,7 @@ sub runCMD {
   return @output, $? >> 8;
 }
 sub isNotReachable {
-    my @output = runCMD("echo `date` unreachable >> \"" . $serverPath . "/" . $serverStatusFilename . "\"';tail -n 5 \"" . $serverPath . "/" . $serverStatusFilename . "\" | grep \'unreachable\' \"" . $serverPath . "/" . $serverStatusFilename . "\" | wc -l");
+    my @output = runCMD("echo `date` unreachable >> \"" . $serverPath . "/" . $serverStatusFilename . "\";tail -n 5 \"" . $serverPath . "/" . $serverStatusFilename . "\" | grep \'unreachable\' \"" . $serverPath . "/" . $serverStatusFilename . "\" | wc -l");
     my $unreachCount = $output[0];
     if (pop(@output) > 0) {
         print STDERR "=> There was an error, getting the \'unreachable\' count. Please check the \"" . $serverPath . "/" . $serverStatusFilename ."\" file.\n";
