@@ -59,10 +59,10 @@ sub runCMD {
   return @output, $? >> 8;
 }
 sub isNotReachable {
-    my @output = runCMD("echo `date` unreachable >> \'" . $serverPath . "/" . $serverStatusFilename . "\"';tail -n 5 \'" . $serverPath . "/" . $serverStatusFilename . "\" | grep \'unreachable\' \'" . $serverPath . "/" . $serverStatusFilename . "\' | wc -l");
+    my @output = runCMD("echo `date` unreachable >> \"" . $serverPath . "/" . $serverStatusFilename . "\"';tail -n 5 \"" . $serverPath . "/" . $serverStatusFilename . "\" | grep \'unreachable\' \"" . $serverPath . "/" . $serverStatusFilename . "\" | wc -l");
     my $unreachCount = $output[0];
     if (pop(@output) > 0) {
-        print STDERR "=> There was an error, getting the \'unreachable\' count. Please check the \'" . $serverPath . "/" . $serverStatusFilename ."\' file.";
+        print STDERR "=> There was an error, getting the \'unreachable\' count. Please check the \"" . $serverPath . "/" . $serverStatusFilename ."\" file.\n";
         exit(1);
     }
     $unreachCount =~ s/^\s+|\s+$//g;
@@ -82,21 +82,22 @@ sub isReachable {
     print("=> Server reachable.\n");
     my @output = runCMD("echo `date` reachable >> \"" . $serverPath . "/" . $serverStatusFilename . "\"");
     if (pop(@output) > 0) {
-        print STDERR "=> Error while resetting the \'" . $serverPath . "/" . $serverStatusFilename . "\' file.\n";
+        print STDERR "=> Error while resetting the \"" . $serverPath . "/" . $serverStatusFilename . "\" file.\n";
         exit(1);
     }
 }
 
 sub resetFile {
-    my @output = runCMD("wc -l \'" . $serverPath . "/" . $serverStatusFilename . "\"");
+    my @output = runCMD("wc -l \"" . $serverPath . "/" . $serverStatusFilename . "\"");
     if (pop(@output) > 0) {
-        my $lineCount = (split(/\s+/, $output[0]))[0];
-        if (not defined $lineCount) {
+        my @lines = split(/\s+/, $output[0]);
+        if (not defined $lines[0]) {
             print STDERR "=> Error getting the wc line count of the server status file.\n";
             exit(1);
         }
+        my $lineCount = $lines[0];
         if ($lineCount >= $resetAfterLines) {
-            @output = runCMD("tail -n 15 \'" . $serverPath . "/" . $serverStatusFilename);
+            @output = runCMD("tail -n 15 \"" . $serverPath . "/" . $serverStatusFilename);
             if (pop(@output) > 0) {
                 print STDERR "=> Error tailing the last 15 lines.\n";
                 exit(1);
@@ -108,7 +109,7 @@ sub resetFile {
                     $first = 0;
                     $redir .= ">";
                 }
-                my @out = runCMD("echo " . $line . " " . $redir . " \'" . $serverPath . "/" . $serverStatusFilename);
+                my @out = runCMD("echo " . $line . " " . $redir . " \"" . $serverPath . "/" . $serverStatusFilename);
                 if (pop(@out) > 0) {
                     print STDERR "=> Error resetting file.\n";
                     exit(1);
