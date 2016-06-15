@@ -18,7 +18,7 @@ use Term::Encoding qw(term_encoding);
 # SRCDS Server inforatmion
 my $serverPath = "PATH_TO_YOUR_SERVER_FOLDER"; # The path to your server folder
 my $serverStatusFilename = ".server_status";
-my $addr= "127.0.0.1"; # Reachable server address
+my $addr = "127.0.0.1"; # Reachable server address
 my $port = 27015; # SRCDS port
 my $restartCommand = "";
 my $restartWorkDirectory = "";
